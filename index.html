@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>saucy.games — Something's Cooking</title>
+
+  <!-- Google Fonts: Space Grotesk & JetBrains Mono (with clean system fallbacks) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & CORE RESET
+       ========================================================================== */
+    :root {
+      --bg-void: #0d0517;
+      --bg-plum: #170826;
+      --crimson: #E60049;
+      --hotpink: #FF266E;
+      --chrome: #E2E8F0;
+      --muted: rgba(226, 232, 240, 0.58);
+      --border-subtle: rgba(226, 232, 240, 0.14);
+      --glass-bg: rgba(16, 6, 30, 0.62);
+      --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-void);
+      color: var(--chrome);
+      font-family: var(--font-sans);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      html, body, a, button, label {
+        cursor: none !important;
+      }
+    }
+
+    /* ==========================================================================
+       FULL-VIEWPORT WEBGL CANVAS
+       ========================================================================== */
+    #webgl-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* ==========================================================================
+       EDITORIAL UI OVERLAY (NO DEAD ZONES FOR WEBGL)
+       ========================================================================== */
+    .ui-shell {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100dvh;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(1.15rem, 3vw, 2rem) clamp(1.25rem, 4vw, 2.75rem);
+    }
+
+    /* TOP BAR */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      animation: revealUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+    }
+
+    .brand-mark {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.42rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(13, 5, 23, 0.52);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-family: var(--font-mono);
+      font-size: clamp(0.625rem, 1vw, 0.72rem);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .status-pill strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background-color: var(--crimson);
+      flex-shrink: 0;
+      animation: statusPulse 2.1s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    /* CENTER STAGE (HOLDS DROPZONE WHEN LOGO IS MISSING + LOWER HERO COPY) */
+    .center-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative;
+      padding-bottom: clamp(1.25rem, 4vh, 2.75rem);
+      text-align: center;
+    }
+
+    /* ==========================================================================
+       GLASSMORPHIC DROPZONE (SHOWN ONLY IF PNG FAILS TO LOAD)
+       ========================================================================== */
+    .dropzone-wrap {
+      position: absolute;
+      top: 41%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(90vw, 480px);
+      pointer-events: auto;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
+    }
+
+    .dropzone-wrap.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .dropzone-card {
+      padding: clamp(1.5rem, 4vw, 2.25rem) clamp(1.25rem, 3.5vw, 2rem);
+      border-radius: 24px;
+      background: rgba(20, 8, 36, 0.56);
+      border: 1px dashed rgba(226, 232, 240, 0.28);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.9rem;
+      transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    }
+
+    .dropzone-card.is-dragover {
+      border-color: var(--hotpink);
+      background: rgba(38, 10, 56, 0.76);
+      box-shadow:
+        0 22px 60px rgba(230, 0, 73, 0.3),
+        inset 0 0 0 1px rgba(255, 38, 110, 0.35);
+      transform: scale(1.02);
+    }
+
+    .dropzone-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(230, 0, 73, 0.14);
+      border: 1px solid rgba(230, 0, 73, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--hotpink);
+    }
+
+    .dropzone-title {
+      margin: 0;
+      font-size: clamp(0.9rem, 1.5vw, 1.02rem);
+      font-weight: 500;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.94);
+    }
+
+    .dropzone-sub {
+      margin: -0.35rem 0 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .dropzone-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.72rem 1.35rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 38, 110, 0.55);
+      background: linear-gradient(135deg, rgba(230, 0, 73, 0.92), rgba(185, 0, 62, 0.92));
+      color: #ffffff;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      box-shadow: 0 10px 26px rgba(230, 0, 73, 0.32);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .dropzone-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(230, 0, 73, 0.45);
+      filter: brightness(1.08);
+    }
+
+    /* Full-window drag overlay when dragging a file while a logo is already loaded */
+    .drag-overlay {
+      position: fixed;
+      inset: 14px;
+      z-index: 40;
+      border-radius: 24px;
+      border: 2px dashed rgba(255, 38, 110, 0.75);
+      background: rgba(13, 5, 23, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .drag-overlay.is-active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drag-overlay-badge {
+      padding: 0.85rem 1.5rem;
+      border-radius: 9999px;
+      background: rgba(23, 8, 38, 0.88);
+      border: 1px solid rgba(255, 38, 110, 0.5);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ==========================================================================
+       LOWER HERO COPY & MAGNETIC EMAIL PILL
+       ========================================================================== */
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.15rem;
+      max-width: 680px;
+      width: 100%;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: clamp(1.15rem, 3.1vw, 2.05rem);
+      letter-spacing: clamp(0.22em, 0.55vw, 0.36em);
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 6px 28px rgba(0, 0, 0, 0.65);
+      padding-left: clamp(0.22em, 0.55vw, 0.36em);
+      animation: revealUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+    }
+
+    .email-wrap {
+      pointer-events: auto;
+      animation: revealUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+
+    .magnetic-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.72rem 1.35rem;
+      border-radius: 9999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--chrome);
+      font-family: var(--font-mono);
+      font-size: clamp(0.74rem, 1.15vw, 0.82rem);
+      letter-spacing: 0.08em;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      will-change: transform;
+      transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+    }
+
+    .magnetic-btn:hover {
+      border-color: rgba(255, 38, 110, 0.65);
+      background: rgba(30, 10, 52, 0.78);
+      color: #ffffff;
+      box-shadow: 0 14px 36px rgba(230, 0, 73, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    }
+
+    .magnetic-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 9999px;
+      background: var(--crimson);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .magnetic-btn:hover .magnetic-dot {
+      background: var(--hotpink);
+      transform: scale(1.15);
+    }
+
+    .magnetic-icon {
+      width: 14px;
+      height: 14px;
+      color: rgba(226, 232, 240, 0.55);
+      transition: color 0.2s ease;
+    }
+
+    .magnetic-btn:hover .magnetic-icon {
+      color: var(--hotpink);
+    }
+
+    .is-copied {
+      color: var(--hotpink) !important;
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    /* ==========================================================================
+       BOTTOM BAR & DEV HELPER CONTROLS (ONLY AFTER MANUAL PNG UPLOAD)
+       ========================================================================== */
+    .bottom-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      animation: revealUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.38s both;
+    }
+
+    .hint-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-mono);
+      font-size: clamp(0.6rem, 0.95vw, 0.7rem);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.42);
+    }
+
+    .hint-line {
+      width: 16px;
+      height: 1px;
+      background: rgba(230, 0, 73, 0.65);
+    }
+
+    .dev-controls {
+      pointer-events: auto;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .dev-controls.is-visible {
+      display: inline-flex;
+    }
+
+    .dev-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(16, 6, 30, 0.62);
+      border: 1px solid rgba(226, 232, 240, 0.14);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: rgba(226, 232, 240, 0.78);
+      font-family: var(--font-sans);
+      font-size: 0.74rem;
+      font-weight: 500;
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+
+    .dev-pill:hover {
+      border-color: rgba(255, 38, 110, 0.55);
+      background: rgba(34, 10, 56, 0.8);
+      color: #ffffff;
+    }
+
+    .dev-pill--primary {
+      border-color: rgba(230, 0, 73, 0.45);
+      background: rgba(230, 0, 73, 0.16);
+      color: #ffffff;
+    }
+
+    .dev-pill--primary:hover {
+      background: rgba(230, 0, 73, 0.34);
+      border-color: var(--hotpink);
+    }
+
+    /* ==========================================================================
+       CUSTOM SMOOTH TRAILING CURSOR RING (DESKTOP ONLY)
+       ========================================================================== */
+    .cursor-dot,
+    .cursor-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    .cursor-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 9999px;
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(255, 38, 110, 0.9);
+      transition: opacity 0.22s ease;
+    }
+
+    .cursor-ring {
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px;
+      border: 1.25px solid rgba(226, 232, 240, 0.45);
+      background: rgba(230, 0, 73, 0.03);
+      transition:
+        width 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.2s ease,
+        background 0.2s ease,
+        opacity 0.22s ease;
+    }
+
+    .cursor-ring.is-hover {
+      width: 54px;
+      height: 54px;
+      border-color: rgba(255, 38, 110, 0.9);
+      background: rgba(230, 0, 73, 0.12);
+    }
+
+    .cursor-ring.is-down {
+      width: 24px;
+      height: 24px;
+      border-color: var(--hotpink);
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      .cursor-dot,
+      .cursor-ring {
+        display: none !important;
+      }
+    }
+
+    /* ==========================================================================
+       ANIMATIONS & MOBILE ADJUSTMENTS
+       ========================================================================== */
+    @keyframes statusPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(230, 0, 73, 0.8);
+      }
+      55% {
+        transform: scale(1.16);
+        opacity: 0.9;
+        box-shadow: 0 0 0 8px rgba(230, 0, 73, 0);
+      }
+    }
+
+    @keyframes revealUp {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 22px, 0);
+        filter: blur(5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .bottom-bar {
+        justify-content: center;
+      }
+      .dev-controls {
+        justify-content: center;
+      }
+      .dropzone-wrap {
+        top: 39%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Full-Viewport Interactive WebGL Shader Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Custom Smooth-Trailing Vivid Motion Cursor (Desktop Only) -->
+  <div id="cursor-dot" class="cursor-dot"></div>
+  <div id="cursor-ring" class="cursor-ring"></div>
+
+  <!-- ========================================================================
+       MINIMALIST EDITORIAL OVERLAY UI
+       ======================================================================== -->
+  <div class="ui-shell">
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+      <div class="brand-mark">SAUCY.GAMES</div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>STATUS: <strong>COOKING</strong></span>
+      </div>
+    </header>
+
+    <!-- CENTER STAGE -->
+    <main class="center-stage">
+
+      <!-- Lower Hero Subtitle & Magnetic Contact Pill -->
+      <div class="hero-copy">
+        <h1 class="hero-title">SOMETHING'S COOKING</h1>
+        <div class="email-wrap">
+          <button id="email-btn" type="button" class="magnetic-btn" aria-label="Copy hello@saucy.games to clipboard">
+            <span class="magnetic-dot"></span>
+            <span id="email-btn-label">hello@saucy.games</span>
+            <svg id="icon-copy" class="magnetic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- BOTTOM BAR -->
+    <footer class="bottom-bar">
+      <div class="hint-label">
+        <span class="hint-line"></span>
+        <span id="interaction-hint">MOVE CURSOR TO DISTORT</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ========================================================================
+       PURE VANILLA WEBGL (GLSL) LIQUID DISTORTION + RGB ABERRATION + SAUCE SMEAR
+       ======================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ----------------------------------------------------------------------
+         0. EXTERNAL LOGO FILE PATH (SAME FOLDER AS index.html)
+         ---------------------------------------------------------------------- */
+      const LOGO_FILE_PATH = './saucy-games-logo-transparent.png';
+
+      /* ----------------------------------------------------------------------
+         1. DEVICE DETECTION & HELPERS
+         ---------------------------------------------------------------------- */
+      const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+      const hintEl = document.getElementById('interaction-hint');
+      if (isTouch && hintEl) {
+        hintEl.textContent = 'TOUCH & DRAG TO DISTORT';
+      }
+
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      /* ----------------------------------------------------------------------
+         2. POINTER & VELOCITY STATE
+         ---------------------------------------------------------------------- */
+      const pointer = {
+        x: window.innerWidth * 0.5,
+        y: window.innerHeight * 0.5,
+        u: 0.5,
+        v: 0.5,
+        prevU: 0.5,
+        prevV: 0.5,
+        speed: 0,
+        active: false,
+      };
+
+      /* ----------------------------------------------------------------------
+         3. 96x96 SYMMETRIC VELOCITY-GRID FLUID SIMULATION (360° DIRECTIONAL)
+         ---------------------------------------------------------------------- */
+      const GRID = 96;
+      const CELL_COUNT = GRID * GRID;
+      let velX = new Float32Array(CELL_COUNT);
+      let velY = new Float32Array(CELL_COUNT);
+      let energy = new Float32Array(CELL_COUNT);
+      let tmpX = new Float32Array(CELL_COUNT);
+      let tmpY = new Float32Array(CELL_COUNT);
+      let tmpEnergy = new Float32Array(CELL_COUNT);
+      const dispBytes = new Uint8Array(CELL_COUNT * 4);
+
+      for (let i = 0; i < CELL_COUNT; i++) {
+        dispBytes[i * 4 + 0] = 128;
+        dispBytes[i * 4 + 1] = 128;
+        dispBytes[i * 4 + 2] = 0;
+        dispBytes[i * 4 + 3] = 255;
+      }
+
+      let aspect = window.innerWidth / Math.max(window.innerHeight, 1);
+
+      function splatVelocityPoint(u, v, dvx, dvy, speed) {
+        const sigma = 0.068 + Math.min(speed * 1.1, 0.048);
+        const twoSigmaSq = 2 * sigma * sigma;
+        const maxDist = sigma * 2.6;
+
+        const gain = clamp(18.0 + speed * 42.0, 18.0, 44.0);
+        const pushX = clamp(dvx * gain, -1.0, 1.0);
+        const pushY = clamp(dvy * gain, -1.0, 1.0);
+        const pushEnergy = clamp(speed * 26.0, 0.0, 1.0);
+
+        const gx = u * GRID;
+        const gy = v * GRID;
+        const centerI = Math.floor(gx);
+        const centerJ = Math.floor(gy);
+        const radius = Math.ceil(maxDist * GRID * Math.max(1.0, 1.0 / aspect));
+
+        for (let dy = -radius; dy <= radius; dy++) {
+          const y = centerJ + dy;
+          if (y < 0 || y >= GRID) continue;
+          const distY = (y + 0.5 - gy) / GRID;
+          const row = y * GRID;
+
+          for (let dx = -radius; dx <= radius; dx++) {
+            const x = centerI + dx;
+            if (x < 0 || x >= GRID) continue;
+
+            const distX = ((x + 0.5 - gx) / GRID) * aspect;
+            const distSq = distX * distX + distY * distY;
+            if (distSq > maxDist * maxDist) continue;
+
+            const weight = Math.exp(-distSq / twoSigmaSq);
+            const idx = row + x;
+            velX[idx] = clamp(velX[idx] + pushX * weight, -1.0, 1.0);
+            velY[idx] = clamp(velY[idx] + pushY * weight, -1.0, 1.0);
+            energy[idx] = clamp(energy[idx] + pushEnergy * weight * 0.85, 0.0, 1.0);
+          }
+        }
+      }
+
+      function injectVelocitySegment(prevU, prevV, u, v) {
+        const dvx = u - prevU;
+        const dvy = v - prevV;
+        const dist = Math.hypot(dvx, dvy);
+        if (dist < 0.00008) return;
+
+        const steps = Math.max(1, Math.min(18, Math.ceil(dist * GRID * 1.15)));
+        const stepDx = dvx / steps;
+        const stepDy = dvy / steps;
+        const stepSpeed = dist / steps;
+
+        for (let s = 1; s <= steps; s++) {
+          const t = s / steps;
+          const su = prevU + dvx * t;
+          const sv = prevV + dvy * t;
+          splatVelocityPoint(su, sv, stepDx * 1.35, stepDy * 1.35, stepSpeed * 1.35);
+        }
+      }
+
+      function injectShockwave(u, v) {
+        const sigma = 0.095;
+        const twoSigmaSq = 2 * sigma * sigma;
+        const maxDist = sigma * 2.8;
+
+        const gx = u * GRID;
+        const gy = v * GRID;
+        const centerI = Math.floor(gx);
+        const centerJ = Math.floor(gy);
+        const radius = Math.ceil(maxDist * GRID * Math.max(1.0, 1.0 / aspect));
+
+        for (let dy = -radius; dy <= radius; dy++) {
+          const y = centerJ + dy;
+          if (y < 0 || y >= GRID) continue;
+          const distY = (y + 0.5 - gy) / GRID;
+          const row = y * GRID;
+
+          for (let dx = -radius; dx <= radius; dx++) {
+            const x = centerI + dx;
+            if (x < 0 || x >= GRID) continue;
+
+            const distX = ((x + 0.5 - gx) / GRID) * aspect;
+            const distSq = distX * distX + distY * distY;
+            if (distSq > maxDist * maxDist || distSq < 0.000004) continue;
+
+            const dist = Math.sqrt(distSq);
+            const weight = Math.exp(-distSq / twoSigmaSq) * 0.72;
+            const idx = row + x;
+            velX[idx] = clamp(velX[idx] + (distX / dist) * weight, -1.0, 1.0);
+            velY[idx] = clamp(velY[idx] + (distY / dist) * weight, -1.0, 1.0);
+            energy[idx] = clamp(energy[idx] + weight * 0.9, 0.0, 1.0);
+          }
+        }
+      }
+
+      function stepVelocityGrid() {
+        const relaxation = 0.92;
+        const energyDecay = 0.915;
+        const diffuse = 0.14;
+        const keep = 1.0 - diffuse;
+
+        for (let y = 0; y < GRID; y++) {
+          const yDn = y > 0 ? y - 1 : 0;
+          const yUp = y < GRID - 1 ? y + 1 : GRID - 1;
+          const row = y * GRID;
+
+          for (let x = 0; x < GRID; x++) {
+            const xLt = x > 0 ? x - 1 : 0;
+            const xRt = x < GRID - 1 ? x + 1 : GRID - 1;
+            const idx = row + x;
+
+            const avgX = (velX[row + xLt] + velX[row + xRt] + velX[yDn * GRID + x] + velX[yUp * GRID + x]) * 0.25;
+            const avgY = (velY[row + xLt] + velY[row + xRt] + velY[yDn * GRID + x] + velY[yUp * GRID + x]) * 0.25;
+            const avgE = (energy[row + xLt] + energy[row + xRt] + energy[yDn * GRID + x] + energy[yUp * GRID + x]) * 0.25;
+
+            let nx = (velX[idx] * keep + avgX * diffuse) * relaxation;
+            let ny = (velY[idx] * keep + avgY * diffuse) * relaxation;
+            let ne = (energy[idx] * keep + avgE * diffuse) * energyDecay;
+
+            if (Math.abs(nx) < 0.0015) nx = 0;
+            if (Math.abs(ny) < 0.0015) ny = 0;
+            if (ne < 0.002) ne = 0;
+
+            tmpX[idx] = nx;
+            tmpY[idx] = ny;
+            tmpEnergy[idx] = ne;
+
+            const p = idx * 4;
+            dispBytes[p + 0] = clamp(Math.round(128 + nx * 127), 0, 255);
+            dispBytes[p + 1] = clamp(Math.round(128 + ny * 127), 0, 255);
+            dispBytes[p + 2] = clamp(Math.round(ne * 255), 0, 255);
+            dispBytes[p + 3] = 255;
+          }
+        }
+
+        const swapX = velX; velX = tmpX; tmpX = swapX;
+        const swapY = velY; velY = tmpY; tmpY = swapY;
+        const swapE = energy; energy = tmpEnergy; tmpEnergy = swapE;
+      }
+
+      /* ----------------------------------------------------------------------
+         4. OFFSCREEN HiDPI 2D SCENE CANVAS + LOGO MASK CANVAS (FOR SAUCE SMEAR)
+         ---------------------------------------------------------------------- */
+      const sceneCanvas = document.createElement('canvas');
+      const sctx = sceneCanvas.getContext('2d');
+
+      const logoMaskCanvas = document.createElement('canvas');
+      const mctx = logoMaskCanvas.getContext('2d');
+
+      let activeLogoImage = null;
+
+      function renderOffscreenScene() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = Math.max(1, Math.floor(window.innerWidth * dpr));
+        const h = Math.max(1, Math.floor(window.innerHeight * dpr));
+
+        sceneCanvas.width = w;
+        sceneCanvas.height = h;
+        logoMaskCanvas.width = w;
+        logoMaskCanvas.height = h;
+        mctx.clearRect(0, 0, w, h);
+
+        // 1. Deep dark-purple studio backdrop (#120520 -> #090312)
+        const bgGrad = sctx.createRadialGradient(
+          w * 0.5, h * 0.42, w * 0.03,
+          w * 0.5, h * 0.5, Math.max(w, h) * 0.78
+        );
+        bgGrad.addColorStop(0.0, '#18082a');
+        bgGrad.addColorStop(0.55, '#120520');
+        bgGrad.addColorStop(1.0, '#07020e');
+        sctx.fillStyle = bgGrad;
+        sctx.fillRect(0, 0, w, h);
+
+        // 2. Subtle crimson ambient radial glow (#E60049) behind centerpiece
+        const crimsonGlow = sctx.createRadialGradient(
+          w * 0.5, h * 0.42, 0,
+          w * 0.5, h * 0.42, Math.min(w, h) * 0.48
+        );
+        crimsonGlow.addColorStop(0.0, 'rgba(230, 0, 73, 0.22)');
+        crimsonGlow.addColorStop(0.48, 'rgba(230, 0, 73, 0.065)');
+        crimsonGlow.addColorStop(1.0, 'rgba(13, 5, 23, 0)');
+        sctx.fillStyle = crimsonGlow;
+        sctx.fillRect(0, 0, w, h);
+
+        // 3. Architectural studio grid (deforms & splits with RGB aberration)
+        const isMobile = window.innerWidth < 640;
+        const gridStep = Math.round((isMobile ? 48 : 68) * dpr);
+        const offsetX = Math.floor((w % gridStep) * 0.5);
+        const offsetY = Math.floor((h % gridStep) * 0.5);
+
+        sctx.save();
+        sctx.strokeStyle = 'rgba(226, 232, 240, 0.068)';
+        sctx.lineWidth = Math.max(1, dpr * 0.85);
+        sctx.beginPath();
+
+        for (let x = offsetX; x <= w; x += gridStep) {
+          sctx.moveTo(x + 0.5, 0);
+          sctx.lineTo(x + 0.5, h);
+        }
+        for (let y = offsetY; y <= h; y += gridStep) {
+          sctx.moveTo(0, y + 0.5);
+          sctx.lineTo(w, y + 0.5);
+        }
+        sctx.stroke();
+
+        // Subtle crimson registration crosshairs at every 3rd grid intersection
+        sctx.strokeStyle = 'rgba(230, 0, 73, 0.25)';
+        sctx.lineWidth = Math.max(1, dpr);
+        const cross = 4 * dpr;
+        sctx.beginPath();
+        let colIdx = 0;
+        for (let x = offsetX; x <= w; x += gridStep) {
+          let rowIdx = 0;
+          for (let y = offsetY; y <= h; y += gridStep) {
+            if (colIdx % 3 === 1 && rowIdx % 3 === 1) {
+              sctx.moveTo(x - cross, y + 0.5);
+              sctx.lineTo(x + cross, y + 0.5);
+              sctx.moveTo(x + 0.5, y - cross);
+              sctx.lineTo(x + 0.5, y + cross);
+            }
+            rowIdx++;
+          }
+          colIdx++;
+        }
+        sctx.stroke();
+        sctx.restore();
+
+        // 4. Composite user's exact transparent PNG logo (if loaded)
+        if (activeLogoImage && activeLogoImage.naturalWidth > 0) {
+          const imgRatio = activeLogoImage.naturalWidth / activeLogoImage.naturalHeight;
+          const targetW = isMobile ? w * 0.82 : Math.min(w * 0.62, 760 * dpr);
+          const maxH = h * (isMobile ? 0.36 : 0.42);
+
+          let drawW = targetW;
+          let drawH = drawW / imgRatio;
+          if (drawH > maxH) {
+            drawH = maxH;
+            drawW = drawH * imgRatio;
+          }
+
+          const centerX = w * 0.5;
+          const centerY = h * (isMobile ? 0.40 : 0.42);
+          const drawX = centerX - drawW * 0.5;
+          const drawY = centerY - drawH * 0.5;
+
+          sctx.save();
+          sctx.imageSmoothingEnabled = true;
+          sctx.imageSmoothingQuality = 'high';
+          sctx.shadowColor = 'rgba(230, 0, 73, 0.32)';
+          sctx.shadowBlur = 28 * dpr;
+          sctx.shadowOffsetY = 10 * dpr;
+          sctx.drawImage(activeLogoImage, drawX, drawY, drawW, drawH);
+          sctx.restore();
+
+          // Draw exact logo silhouette onto transparent mask canvas for sauce smear detection
+          mctx.save();
+          mctx.imageSmoothingEnabled = true;
+          mctx.imageSmoothingQuality = 'high';
+          mctx.drawImage(activeLogoImage, drawX, drawY, drawW, drawH);
+          mctx.restore();
+        }
+
+        return uploadSceneTextures();
+      }
+
+      /* ----------------------------------------------------------------------
+         5. PURE VANILLA WEBGL ENGINE (LIQUID DISTORTION + RGB + SAUCE SMEAR FBO)
+         ---------------------------------------------------------------------- */
+      const glCanvas = document.getElementById('webgl-canvas');
+      const SMEAR_SIZE = 512;
+
+      let gl = null;
+      let quadBuffer = null;
+
+      // Main render program
+      let program = null;
+      let mainPosLoc = -1;
+      let sceneTexture = null;
+      let dispTexture = null;
+      let logoMaskTexture = null;
+      let uTimeLoc = null;
+      let uResLoc = null;
+      let uSmearEnabledLoc = null;
+
+      // Ping-Pong Sauce Smear FBO program
+      let smearProgram = null;
+      let smearPosLoc = -1;
+      let smearTextures = [null, null];
+      let smearFBOs = [null, null];
+      let smearReadIdx = 0;
+      let smearWriteIdx = 1;
+      let smearReady = false;
+
+      let webglReady = false;
+
+      const VERTEX_SHADER_SRC = `
+        attribute vec2 a_pos;
+        varying vec2 v_uv;
+        void main() {
+          v_uv = a_pos * 0.5 + 0.5;
+          gl_Position = vec4(a_pos, 0.0, 1.0);
+        }
+      `;
+
+      // Pass 1: Accumulates glossy sauce smear where the logo stretches, then gently diffuses & fades
+      const SMEAR_FRAGMENT_SHADER_SRC = `
+        precision highp float;
+
+        uniform sampler2D u_prevSmear;
+        uniform sampler2D u_disp;
+        uniform sampler2D u_logoMask;
+        varying vec2 v_uv;
+
+        void main() {
+          vec4 data = texture2D(u_disp, v_uv);
+          vec2 vel = (vec2(data.r, data.g) * 255.0 - 128.0) / 127.0;
+          float speed = length(vel);
+
+          // Slight viscous advection + soft 4-tap diffusion of previous sauce smear
+          vec2 advectedUV = clamp(v_uv - vel * 0.0045, 0.001, 0.999);
+          float texel = 1.0 / 512.0;
+
+          float prevC = texture2D(u_prevSmear, advectedUV).r;
+          float prevR = texture2D(u_prevSmear, clamp(advectedUV + vec2(texel, 0.0), 0.0, 1.0)).r;
+          float prevL = texture2D(u_prevSmear, clamp(advectedUV - vec2(texel, 0.0), 0.0, 1.0)).r;
+          float prevU = texture2D(u_prevSmear, clamp(advectedUV + vec2(0.0, texel), 0.0, 1.0)).r;
+          float prevD = texture2D(u_prevSmear, clamp(advectedUV - vec2(0.0, texel), 0.0, 1.0)).r;
+
+          float diffused = prevC * 0.80 + (prevR + prevL + prevU + prevD) * 0.05;
+          // Smooth decay (~3s fade) with small subtraction so 8-bit FBO cleanly reaches 0.0
+          float decayed = max(diffused * 0.984 - 0.0026, 0.0);
+
+          // Detect where the stretched logo currently reaches
+          vec2 offset = vel * 0.085;
+          vec2 uvDisplaced = clamp(v_uv - offset, 0.001, 0.999);
+          float stretchedLogoAlpha = texture2D(u_logoMask, uvDisplaced).a;
+
+          // Deposit sauce proportional to stretch speed on stretched logo pixels
+          float stretchFactor = smoothstep(0.035, 0.30, speed);
+          float deposit = stretchedLogoAlpha * stretchFactor * 0.42;
+
+          float nextSmear = clamp(decayed + deposit, 0.0, 1.0);
+          gl_FragColor = vec4(nextSmear, 0.0, 0.0, 1.0);
+        }
+      `;
+
+      // Pass 2: Main shader (original Vivid Motion distortion + RGB aberration + glossy sauce smear)
+      const FRAGMENT_SHADER_SRC = `
+        precision highp float;
+
+        uniform sampler2D u_scene;
+        uniform sampler2D u_disp;
+        uniform sampler2D u_logoMask;
+        uniform sampler2D u_smear;
+        uniform int u_smearEnabled;
+        uniform float u_time;
+        uniform vec2 u_resolution;
+        varying vec2 v_uv;
+
+        float hash(vec2 p) {
+          vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+          p3 += dot(p3, p3.yzx + 33.33);
+          return fract((p3.x + p3.y) * p3.z);
+        }
+
+        void main() {
+          // Read velocity & wake energy from 96x96 DataTexture with exact zero at 128
+          vec4 data = texture2D(u_disp, v_uv);
+          vec2 vel = (vec2(data.r, data.g) * 255.0 - 128.0) / 127.0;
+          float speed = length(vel);
+          float wake = data.b;
+
+          // Signed UV displacement strictly along the actual movement direction
+          vec2 offset = vel * 0.085;
+
+          // Directional RGB chromatic aberration aligned to the signed velocity vector
+          vec2 uvR = clamp(v_uv - offset * 1.25, 0.001, 0.999);
+          vec2 uvG = clamp(v_uv - offset * 1.00, 0.001, 0.999);
+          vec2 uvB = clamp(v_uv - offset * 0.75, 0.001, 0.999);
+
+          float r = texture2D(u_scene, uvR).r;
+          float g = texture2D(u_scene, uvG).g;
+          float b = texture2D(u_scene, uvB).b;
+          vec3 color = vec3(r, g, b);
+
+          // Glossy SAUCY crimson smear left behind where the logo stretched & snapped back
+          if (u_smearEnabled == 1) {
+            float sC = texture2D(u_smear, v_uv).r;
+            if (sC > 0.004) {
+              float st = 1.0 / 512.0;
+              float sR = texture2D(u_smear, clamp(v_uv + vec2(st, 0.0), 0.0, 1.0)).r;
+              float sL = texture2D(u_smear, clamp(v_uv - vec2(st, 0.0), 0.0, 1.0)).r;
+              float sU = texture2D(u_smear, clamp(v_uv + vec2(0.0, st), 0.0, 1.0)).r;
+              float sD = texture2D(u_smear, clamp(v_uv - vec2(0.0, st), 0.0, 1.0)).r;
+
+              // 3D wet-sauce normal & glossy specular highlight
+              vec3 sNormal = normalize(vec3((sL - sR) * 5.2, (sD - sU) * 5.2, 1.0));
+              vec3 lightDir = normalize(vec3(-0.32, 0.68, 0.66));
+              float spec = pow(max(dot(sNormal, lightDir), 0.0), 22.0);
+
+              // SAUCY crimson-pink sauce tint (#8A002B -> #E60049 -> #FF266E)
+              vec3 sauceColor = mix(
+                vec3(0.54, 0.0, 0.17),
+                vec3(0.902, 0.0, 0.286),
+                smoothstep(0.05, 0.65, sC)
+              );
+              sauceColor += vec3(1.0, 0.35, 0.60) * spec * 0.65;
+
+              // Keep the active logo crisp on top; reveal smear where logo returned
+              float activeLogoAlpha = texture2D(u_logoMask, uvG).a;
+              float smearMask = smoothstep(0.015, 0.42, sC) * 0.74 * (1.0 - activeLogoAlpha * 0.94);
+
+              color = mix(color, sauceColor, smearMask);
+              color += vec3(1.0, 0.58, 0.78) * spec * smoothstep(0.04, 0.32, sC) * (1.0 - activeLogoAlpha) * 0.34;
+            }
+          }
+
+          // Centered finite-difference wake gradient (isotropic, zero directional bias)
+          float texel = 1.0 / 96.0;
+          float eR = texture2D(u_disp, clamp(v_uv + vec2(texel, 0.0), 0.0, 1.0)).b;
+          float eL = texture2D(u_disp, clamp(v_uv - vec2(texel, 0.0), 0.0, 1.0)).b;
+          float eU = texture2D(u_disp, clamp(v_uv + vec2(0.0, texel), 0.0, 1.0)).b;
+          float eD = texture2D(u_disp, clamp(v_uv - vec2(0.0, texel), 0.0, 1.0)).b;
+
+          vec2 wakeGrad = vec2(eR - eL, eU - eD) * 0.5;
+          float gradMag = length(wakeGrad);
+          vec2 moveDir = normalize(vel + vec2(1e-5));
+
+          // Directional glossy liquid rim aligned strictly to movement direction (360 deg)
+          float dirAlign = max(dot(normalize(wakeGrad + vec2(1e-5)), -moveDir), 0.0);
+          float sheen = dirAlign * gradMag * 3.8 * smoothstep(0.02, 0.25, speed);
+
+          // Iridescent crimson/magenta wake glow centered symmetrically on the trail
+          color += vec3(1.0, 0.36, 0.62) * sheen * 0.52;
+          color += vec3(0.90, 0.0, 0.29) * (wake * smoothstep(0.02, 0.45, speed) * 0.16);
+
+          // Subtle animated film grain
+          float grain = (hash(gl_FragCoord.xy + fract(u_time) * 100.0) - 0.5) * 0.024;
+          color += grain;
+
+          // Subtle edge vignette
+          vec2 centered = v_uv - 0.5;
+          float vig = 1.0 - dot(centered, centered) * 0.4;
+          color *= clamp(vig, 0.74, 1.0);
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `;
+
+      function compileShader(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const info = gl.getShaderInfoLog(shader);
+          gl.deleteShader(shader);
+          throw new Error('Shader compile error: ' + info);
+        }
+        return shader;
+      }
+
+      function createProgram(vsSrc, fsSrc) {
+        const vs = compileShader(gl.VERTEX_SHADER, vsSrc);
+        const fs = compileShader(gl.FRAGMENT_SHADER, fsSrc);
+        const prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+          throw new Error('Program link error: ' + gl.getProgramInfoLog(prog));
+        }
+        return prog;
+      }
+
+      function createLinearTexture(unit) {
+        const tex = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        return tex;
+      }
+
+      function uploadSceneTextures() {
+        if (!webglReady || !sceneTexture || !logoMaskTexture) return true;
+        try {
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sceneCanvas);
+
+          gl.activeTexture(gl.TEXTURE2);
+          gl.bindTexture(gl.TEXTURE_2D, logoMaskTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, logoMaskCanvas);
+
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+          return true;
+        } catch (err) {
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+          return false;
+        }
+      }
+
+      function initWebGL() {
+        try {
+          gl = glCanvas.getContext('webgl', {
+            alpha: false,
+            antialias: false,
+            depth: false,
+            stencil: false,
+            powerPreference: 'high-performance',
+          }) || glCanvas.getContext('experimental-webgl');
+
+          if (!gl) throw new Error('WebGL unavailable');
+
+          program = createProgram(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+          smearProgram = createProgram(VERTEX_SHADER_SRC, SMEAR_FRAGMENT_SHADER_SRC);
+
+          quadBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+          gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+            gl.STATIC_DRAW
+          );
+
+          mainPosLoc = gl.getAttribLocation(program, 'a_pos');
+          smearPosLoc = gl.getAttribLocation(smearProgram, 'a_pos');
+
+          sceneTexture = createLinearTexture(0);
+          dispTexture = createLinearTexture(1);
+          logoMaskTexture = createLinearTexture(2);
+
+          gl.activeTexture(gl.TEXTURE1);
+          gl.bindTexture(gl.TEXTURE_2D, dispTexture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            GRID,
+            GRID,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            dispBytes
+          );
+
+          // Setup Ping-Pong 512x512 Framebuffers for Sauce Smear
+          smearReady = true;
+          const zeroPixels = new Uint8Array(SMEAR_SIZE * SMEAR_SIZE * 4);
+          for (let i = 0; i < 2; i++) {
+            const tex = createLinearTexture(3);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(
+              gl.TEXTURE_2D,
+              0,
+              gl.RGBA,
+              SMEAR_SIZE,
+              SMEAR_SIZE,
+              0,
+              gl.RGBA,
+              gl.UNSIGNED_BYTE,
+              zeroPixels
+            );
+
+            const fbo = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+
+            if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+              smearReady = false;
+            }
+            smearTextures[i] = tex;
+            smearFBOs[i] = fbo;
+          }
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+          // Static sampler bindings for Smear Program
+          gl.useProgram(smearProgram);
+          gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_disp'), 1);
+          gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_logoMask'), 2);
+          gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_prevSmear'), 3);
+
+          // Static sampler bindings for Main Program
+          gl.useProgram(program);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_scene'), 0);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_disp'), 1);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_logoMask'), 2);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_smear'), 3);
+          uTimeLoc = gl.getUniformLocation(program, 'u_time');
+          uResLoc = gl.getUniformLocation(program, 'u_resolution');
+          uSmearEnabledLoc = gl.getUniformLocation(program, 'u_smearEnabled');
+
+          webglReady = true;
+        } catch (err) {
+          webglReady = false;
+          glCanvas.style.display = 'none';
+          sceneCanvas.style.position = 'fixed';
+          sceneCanvas.style.inset = '0';
+          sceneCanvas.style.width = '100%';
+          sceneCanvas.style.height = '100%';
+          sceneCanvas.style.zIndex = '1';
+          document.body.prepend(sceneCanvas);
+        }
+      }
+
+      function resizeViewport() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = Math.max(1, Math.floor(window.innerWidth * dpr));
+        const h = Math.max(1, Math.floor(window.innerHeight * dpr));
+        aspect = window.innerWidth / Math.max(window.innerHeight, 1);
+
+        if (webglReady) {
+          glCanvas.width = w;
+          glCanvas.height = h;
+          gl.useProgram(program);
+          gl.viewport(0, 0, w, h);
+          gl.uniform2f(uResLoc, w, h);
+        }
+
+        renderOffscreenScene();
+      }
+
+      /* ----------------------------------------------------------------------
+         6. DIRECT LOGO LOADING FROM ./saucy-games-logo-transparent.png
+         ---------------------------------------------------------------------- */
+      function initLogoSource() {
+        const hostedImg = new Image();
+        hostedImg.onload = function () {
+          activeLogoImage = hostedImg;
+          renderOffscreenScene();
+        };
+        hostedImg.onerror = function () {
+          activeLogoImage = null;
+          renderOffscreenScene();
+        };
+        hostedImg.src = LOGO_FILE_PATH;
+      }
+
+      /* ----------------------------------------------------------------------
+         7. MAGNETIC EMAIL BUTTON & IFRAME-SAFE CLIPBOARD COPY
+         ---------------------------------------------------------------------- */
+      const emailBtn = document.getElementById('email-btn');
+      const emailLabel = document.getElementById('email-btn-label');
+      const iconCopy = document.getElementById('icon-copy');
+      const btnMagnetic = { x: 0, y: 0 };
+      let copyTimer = null;
+
+      function updateMagneticButton() {
+        if (isTouch || !emailBtn) return;
+        const rect = emailBtn.getBoundingClientRect();
+        const cx = rect.left + rect.width * 0.5;
+        const cy = rect.top + rect.height * 0.5;
+        const dx = pointer.x - cx;
+        const dy = pointer.y - cy;
+        const dist = Math.hypot(dx, dy);
+
+        let tx = 0;
+        let ty = 0;
+        if (pointer.active && dist < 130) {
+          const pull = (1 - dist / 130) * 0.32;
+          tx = dx * pull;
+          ty = dy * pull;
+        }
+
+        btnMagnetic.x = lerp(btnMagnetic.x, tx, 0.16);
+        btnMagnetic.y = lerp(btnMagnetic.y, ty, 0.16);
+        emailBtn.style.transform = `translate3d(${btnMagnetic.x.toFixed(2)}px, ${btnMagnetic.y.toFixed(2)}px, 0)`;
+      }
+
+      function copyStudioEmail() {
+        const email = 'hello@saucy.games';
+        try {
+          const tempInput = document.createElement('textarea');
+          tempInput.value = email;
+          tempInput.setAttribute('readonly', '');
+          tempInput.style.position = 'fixed';
+          tempInput.style.opacity = '0';
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+        } catch (err) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(email).catch(() => {});
+          }
+        }
+
+        clearTimeout(copyTimer);
+        emailLabel.textContent = 'COPIED TO CLIPBOARD';
+        emailLabel.classList.add('is-copied');
+        iconCopy.classList.add('is-hidden');
+
+        copyTimer = setTimeout(() => {
+          emailLabel.textContent = email;
+          emailLabel.classList.remove('is-copied');
+          iconCopy.classList.remove('is-hidden');
+        }, 2200);
+      }
+
+      emailBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = emailBtn.getBoundingClientRect();
+        const canvasRect = glCanvas.getBoundingClientRect();
+        const u = (rect.left + rect.width * 0.5 - canvasRect.left) / Math.max(canvasRect.width, 1);
+        const v = 1.0 - (rect.top + rect.height * 0.5 - canvasRect.top) / Math.max(canvasRect.height, 1);
+        injectShockwave(u, v);
+        copyStudioEmail();
+      });
+
+      /* ----------------------------------------------------------------------
+         8. CUSTOM SMOOTH TRAILING CURSOR RING (DESKTOP ONLY)
+         ---------------------------------------------------------------------- */
+      const cursorDot = document.getElementById('cursor-dot');
+      const cursorRing = document.getElementById('cursor-ring');
+      const ringPos = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.5, scale: 1 };
+
+      if (!isTouch) {
+        const interactiveSelector = 'button, a';
+        document.addEventListener('mouseover', (e) => {
+          if (e.target && e.target.closest(interactiveSelector)) {
+            cursorRing.classList.add('is-hover');
+          }
+        });
+        document.addEventListener('mouseout', (e) => {
+          if (e.target && e.target.closest(interactiveSelector)) {
+            cursorRing.classList.remove('is-hover');
+          }
+        });
+        window.addEventListener('mousedown', () => cursorRing.classList.add('is-down'));
+        window.addEventListener('mouseup', () => cursorRing.classList.remove('is-down'));
+      }
+
+      function updateCustomCursor() {
+        if (isTouch || !pointer.active) return;
+
+        cursorDot.style.opacity = '1';
+        cursorRing.style.opacity = '1';
+
+        cursorDot.style.transform = `translate3d(${pointer.x.toFixed(1)}px, ${pointer.y.toFixed(1)}px, 0) translate(-50%, -50%)`;
+
+        ringPos.x = lerp(ringPos.x, pointer.x, 0.16);
+        ringPos.y = lerp(ringPos.y, pointer.y, 0.16);
+        const targetScale = 1 + Math.min(pointer.speed * 14, 0.36);
+        ringPos.scale = lerp(ringPos.scale, targetScale, 0.14);
+
+        cursorRing.style.transform = `translate3d(${ringPos.x.toFixed(1)}px, ${ringPos.y.toFixed(1)}px, 0) translate(-50%, -50%) scale(${ringPos.scale.toFixed(3)})`;
+      }
+
+      /* ----------------------------------------------------------------------
+         9. POINTER & TOUCH INTERACTION HANDLERS
+         ---------------------------------------------------------------------- */
+      function getCanvasUV(clientX, clientY) {
+        const rect = glCanvas.getBoundingClientRect();
+        const u = (clientX - rect.left) / Math.max(rect.width, 1);
+        const v = 1.0 - (clientY - rect.top) / Math.max(rect.height, 1);
+        return { u, v };
+      }
+
+      function onPointerMove(clientX, clientY) {
+        const { u, v } = getCanvasUV(clientX, clientY);
+
+        if (!pointer.active) {
+          pointer.prevU = u;
+          pointer.prevV = v;
+          ringPos.x = clientX;
+          ringPos.y = clientY;
+        }
+
+        const dvx = u - pointer.prevU;
+        const dvy = v - pointer.prevV;
+
+        pointer.x = clientX;
+        pointer.y = clientY;
+        pointer.u = u;
+        pointer.v = v;
+        pointer.speed = Math.hypot(dvx, dvy);
+        pointer.active = true;
+
+        injectVelocitySegment(pointer.prevU, pointer.prevV, u, v);
+
+        pointer.prevU = u;
+        pointer.prevV = v;
+      }
+
+      window.addEventListener('mousemove', (e) => {
+        onPointerMove(e.clientX, e.clientY);
+      }, { passive: true });
+
+      window.addEventListener('mouseleave', () => {
+        pointer.active = false;
+        if (!isTouch) {
+          cursorDot.style.opacity = '0';
+          cursorRing.style.opacity = '0';
+        }
+      });
+
+      window.addEventListener('click', (e) => {
+        if (e.target && e.target.closest('button')) return;
+        const { u, v } = getCanvasUV(e.clientX, e.clientY);
+        injectShockwave(u, v);
+      });
+
+      window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          const { u, v } = getCanvasUV(t.clientX, t.clientY);
+          pointer.x = t.clientX;
+          pointer.y = t.clientY;
+          pointer.u = u;
+          pointer.v = v;
+          pointer.prevU = u;
+          pointer.prevV = v;
+          pointer.active = true;
+          injectShockwave(u, v);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          onPointerMove(t.clientX, t.clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        pointer.active = false;
+      }, { passive: true });
+
+      let resizeTimer = null;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resizeViewport, 80);
+      });
+
+      /* ----------------------------------------------------------------------
+         10. MAIN 60FPS ANIMATION LOOP
+         ---------------------------------------------------------------------- */
+      function animate(now) {
+        pointer.speed = lerp(pointer.speed, 0, 0.14);
+        stepVelocityGrid();
+
+        if (webglReady) {
+          // Upload 96x96 velocity grid to TEXTURE1
+          gl.activeTexture(gl.TEXTURE1);
+          gl.bindTexture(gl.TEXTURE_2D, dispTexture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+          gl.texSubImage2D(
+            gl.TEXTURE_2D,
+            0,
+            0,
+            0,
+            GRID,
+            GRID,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            dispBytes
+          );
+
+          gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+
+          // PASS 1: Update Ping-Pong Sauce Smear FBO
+          if (smearReady) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, smearFBOs[smearWriteIdx]);
+            gl.viewport(0, 0, SMEAR_SIZE, SMEAR_SIZE);
+            gl.useProgram(smearProgram);
+
+            gl.enableVertexAttribArray(smearPosLoc);
+            gl.vertexAttribPointer(smearPosLoc, 2, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, dispTexture);
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_2D, logoMaskTexture);
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, smearTextures[smearReadIdx]);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            const tmpIdx = smearReadIdx;
+            smearReadIdx = smearWriteIdx;
+            smearWriteIdx = tmpIdx;
+          }
+
+          // PASS 2: Render Main Scene + Distortion + Sauce Smear to Screen
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+          gl.useProgram(program);
+
+          gl.enableVertexAttribArray(mainPosLoc);
+          gl.vertexAttribPointer(mainPosLoc, 2, gl.FLOAT, false, 0, 0);
+
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+          gl.activeTexture(gl.TEXTURE1);
+          gl.bindTexture(gl.TEXTURE_2D, dispTexture);
+          gl.activeTexture(gl.TEXTURE2);
+          gl.bindTexture(gl.TEXTURE_2D, logoMaskTexture);
+          if (smearReady) {
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, smearTextures[smearReadIdx]);
+          }
+
+          gl.uniform1i(uSmearEnabledLoc, smearReady ? 1 : 0);
+          gl.uniform1f(uTimeLoc, now * 0.001);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+
+        updateMagneticButton();
+        updateCustomCursor();
+
+        requestAnimationFrame(animate);
+      }
+
+      /* ----------------------------------------------------------------------
+         11. INITIALIZATION ON WINDOW LOAD
+         ---------------------------------------------------------------------- */
+      window.onload = function () {
+        initWebGL();
+        resizeViewport();
+        initLogoSource();
+
+        // Subtle initial liquid ripple so the shader feels alive immediately
+        setTimeout(() => {
+          injectVelocitySegment(0.45, 0.58, 0.52, 0.59);
+        }, 260);
+
+        requestAnimationFrame(animate);
+      };
+    })();
+  </script>
+
+</body></html>
