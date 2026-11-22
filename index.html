@@ -129,7 +129,7 @@
       animation: statusPulse 2.1s infinite cubic-bezier(0.4, 0, 0.6, 1);
     }
 
-    /* CENTER STAGE (HOLDS DROPZONE WHEN LOGO IS MISSING + LOWER HERO COPY) */
+    /* CENTER STAGE */
     .center-stage {
       flex: 1;
       display: flex;
@@ -139,140 +139,6 @@
       position: relative;
       padding-bottom: clamp(1.25rem, 4vh, 2.75rem);
       text-align: center;
-    }
-
-    /* ==========================================================================
-       GLASSMORPHIC DROPZONE (SHOWN ONLY IF PNG FAILS TO LOAD)
-       ========================================================================== */
-    .dropzone-wrap {
-      position: absolute;
-      top: 41%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(90vw, 480px);
-      pointer-events: auto;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
-    }
-
-    .dropzone-wrap.is-visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .dropzone-card {
-      padding: clamp(1.5rem, 4vw, 2.25rem) clamp(1.25rem, 3.5vw, 2rem);
-      border-radius: 24px;
-      background: rgba(20, 8, 36, 0.56);
-      border: 1px dashed rgba(226, 232, 240, 0.28);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.9rem;
-      transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-    }
-
-    .dropzone-card.is-dragover {
-      border-color: var(--hotpink);
-      background: rgba(38, 10, 56, 0.76);
-      box-shadow:
-        0 22px 60px rgba(230, 0, 73, 0.3),
-        inset 0 0 0 1px rgba(255, 38, 110, 0.35);
-      transform: scale(1.02);
-    }
-
-    .dropzone-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: rgba(230, 0, 73, 0.14);
-      border: 1px solid rgba(230, 0, 73, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--hotpink);
-    }
-
-    .dropzone-title {
-      margin: 0;
-      font-size: clamp(0.9rem, 1.5vw, 1.02rem);
-      font-weight: 500;
-      line-height: 1.45;
-      color: rgba(255, 255, 255, 0.94);
-    }
-
-    .dropzone-sub {
-      margin: -0.35rem 0 0.25rem;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-    }
-
-    .dropzone-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.55rem;
-      padding: 0.72rem 1.35rem;
-      border-radius: 9999px;
-      border: 1px solid rgba(255, 38, 110, 0.55);
-      background: linear-gradient(135deg, rgba(230, 0, 73, 0.92), rgba(185, 0, 62, 0.92));
-      color: #ffffff;
-      font-family: var(--font-sans);
-      font-size: 0.875rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      box-shadow: 0 10px 26px rgba(230, 0, 73, 0.32);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-    }
-
-    .dropzone-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 32px rgba(230, 0, 73, 0.45);
-      filter: brightness(1.08);
-    }
-
-    /* Full-window drag overlay when dragging a file while a logo is already loaded */
-    .drag-overlay {
-      position: fixed;
-      inset: 14px;
-      z-index: 40;
-      border-radius: 24px;
-      border: 2px dashed rgba(255, 38, 110, 0.75);
-      background: rgba(13, 5, 23, 0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
-    }
-
-    .drag-overlay.is-active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .drag-overlay-badge {
-      padding: 0.85rem 1.5rem;
-      border-radius: 9999px;
-      background: rgba(23, 8, 38, 0.88);
-      border: 1px solid rgba(255, 38, 110, 0.5);
-      font-family: var(--font-sans);
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #ffffff;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
     }
 
     /* ==========================================================================
@@ -365,55 +231,6 @@
     }
 
     /* ==========================================================================
-       BOTTOM BAR & DEV HELPER CONTROLS (ONLY AFTER MANUAL PNG UPLOAD)
-       ========================================================================== */
-    .dev-controls {
-      pointer-events: auto;
-      display: none;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .dev-controls.is-visible {
-      display: inline-flex;
-    }
-
-    .dev-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.42rem;
-      padding: 0.45rem 0.85rem;
-      border-radius: 9999px;
-      background: rgba(16, 6, 30, 0.62);
-      border: 1px solid rgba(226, 232, 240, 0.14);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: rgba(226, 232, 240, 0.78);
-      font-family: var(--font-sans);
-      font-size: 0.74rem;
-      font-weight: 500;
-      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-    }
-
-    .dev-pill:hover {
-      border-color: rgba(255, 38, 110, 0.55);
-      background: rgba(34, 10, 56, 0.8);
-      color: #ffffff;
-    }
-
-    .dev-pill--primary {
-      border-color: rgba(230, 0, 73, 0.45);
-      background: rgba(230, 0, 73, 0.16);
-      color: #ffffff;
-    }
-
-    .dev-pill--primary:hover {
-      background: rgba(230, 0, 73, 0.34);
-      border-color: var(--hotpink);
-    }
-
-    /* ==========================================================================
        CUSTOM SMOOTH TRAILING CURSOR RING (DESKTOP ONLY)
        ========================================================================== */
     .cursor-dot,
@@ -471,7 +288,7 @@
     }
 
     /* ==========================================================================
-       ANIMATIONS & MOBILE ADJUSTMENTS
+       ANIMATIONS
        ========================================================================== */
     @keyframes statusPulse {
       0%, 100% {
@@ -496,18 +313,6 @@
         opacity: 1;
         transform: translate3d(0, 0, 0);
         filter: blur(0);
-      }
-    }
-
-    @media (max-width: 640px) {
-      .bottom-bar {
-        justify-content: center;
-      }
-      .dev-controls {
-        justify-content: center;
-      }
-      .dropzone-wrap {
-        top: 39%;
       }
     }
   </style>
@@ -557,7 +362,7 @@
   </div>
 
   <!-- ========================================================================
-       PURE VANILLA WEBGL (GLSL) LIQUID DISTORTION + RGB ABERRATION + SAUCE SMEAR
+       PURE VANILLA WEBGL (GLSL) LIQUID DISTORTION + RGB + SAUCE SMEAR + STATIC GAMES
        ======================================================================== -->
   <script>
     (function () {
@@ -751,48 +556,135 @@
       }
 
       /* ----------------------------------------------------------------------
-         4. OFFSCREEN HiDPI 2D SCENE CANVAS + LOGO MASK CANVAS (FOR SAUCE SMEAR)
+         4. OFFSCREEN HiDPI CANVASES (BG + SPLIT SAUCY / STATIC GAMES LAYERS)
          ---------------------------------------------------------------------- */
-      const sceneCanvas = document.createElement('canvas');
-      const sctx = sceneCanvas.getContext('2d');
+      const bgCanvas = document.createElement('canvas');
+      const bctx = bgCanvas.getContext('2d');
 
-      const logoMaskCanvas = document.createElement('canvas');
-      const mctx = logoMaskCanvas.getContext('2d');
+      const saucyCanvas = document.createElement('canvas');
+      const sctx = saucyCanvas.getContext('2d');
 
+      const gamesCanvas = document.createElement('canvas');
+      const gctx = gamesCanvas.getContext('2d');
+
+      let saucySourceCanvas = null;
+      let gamesSourceCanvas = null;
       let activeLogoImage = null;
+
+      /**
+       * Splits the loaded PNG once into two native-resolution transparent layers:
+       * - gamesSourceCanvas: metallic silver-white "GAMES" (bottom-left region)
+       * - saucySourceCanvas: glossy crimson "saucy" lettering + droplet
+       */
+      function splitLogoIntoLayers(img) {
+        const iw = img.naturalWidth;
+        const ih = img.naturalHeight;
+
+        const temp = document.createElement('canvas');
+        temp.width = iw;
+        temp.height = ih;
+        const tctx = temp.getContext('2d', { willReadFrequently: true });
+        tctx.drawImage(img, 0, 0);
+
+        const src = tctx.getImageData(0, 0, iw, ih);
+        const data = src.data;
+
+        const sCan = document.createElement('canvas');
+        sCan.width = iw;
+        sCan.height = ih;
+        const sc = sCan.getContext('2d');
+        const sImg = sc.createImageData(iw, ih);
+        const sData = sImg.data;
+
+        const gCan = document.createElement('canvas');
+        gCan.width = iw;
+        gCan.height = ih;
+        const gc = gCan.getContext('2d');
+        const gImg = gc.createImageData(iw, ih);
+        const gData = gImg.data;
+
+        // Normalized bounding box covering "GAMES" and its drop shadow
+        const minX = Math.floor(iw * 0.08);
+        const maxX = Math.ceil(iw * 0.50);
+        const minY = Math.floor(ih * 0.535);
+        const maxY = Math.ceil(ih * 0.78);
+
+        for (let y = 0; y < ih; y++) {
+          const inY = y >= minY && y <= maxY;
+          const rowOff = y * iw;
+
+          for (let x = 0; x < iw; x++) {
+            const idx = (rowOff + x) * 4;
+            const a = data[idx + 3];
+            if (a === 0) continue;
+
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+
+            // Neutral metallic silver/grey/shadow inside the GAMES box -> static GAMES layer
+            const isNeutral =
+              Math.abs(r - g) < 28 &&
+              Math.abs(r - b) < 28 &&
+              r <= g * 1.3 + 15;
+
+            if (inY && x >= minX && x <= maxX && isNeutral) {
+              gData[idx] = r;
+              gData[idx + 1] = g;
+              gData[idx + 2] = b;
+              gData[idx + 3] = a;
+            } else {
+              sData[idx] = r;
+              sData[idx + 1] = g;
+              sData[idx + 2] = b;
+              sData[idx + 3] = a;
+            }
+          }
+        }
+
+        sc.putImageData(sImg, 0, 0);
+        gc.putImageData(gImg, 0, 0);
+
+        saucySourceCanvas = sCan;
+        gamesSourceCanvas = gCan;
+      }
 
       function renderOffscreenScene() {
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const w = Math.max(1, Math.floor(window.innerWidth * dpr));
         const h = Math.max(1, Math.floor(window.innerHeight * dpr));
 
-        sceneCanvas.width = w;
-        sceneCanvas.height = h;
-        logoMaskCanvas.width = w;
-        logoMaskCanvas.height = h;
-        mctx.clearRect(0, 0, w, h);
+        bgCanvas.width = w;
+        bgCanvas.height = h;
+        saucyCanvas.width = w;
+        saucyCanvas.height = h;
+        gamesCanvas.width = w;
+        gamesCanvas.height = h;
+
+        sctx.clearRect(0, 0, w, h);
+        gctx.clearRect(0, 0, w, h);
 
         // 1. Deep dark-purple studio backdrop (#120520 -> #090312)
-        const bgGrad = sctx.createRadialGradient(
+        const bgGrad = bctx.createRadialGradient(
           w * 0.5, h * 0.42, w * 0.03,
           w * 0.5, h * 0.5, Math.max(w, h) * 0.78
         );
         bgGrad.addColorStop(0.0, '#18082a');
         bgGrad.addColorStop(0.55, '#120520');
         bgGrad.addColorStop(1.0, '#07020e');
-        sctx.fillStyle = bgGrad;
-        sctx.fillRect(0, 0, w, h);
+        bctx.fillStyle = bgGrad;
+        bctx.fillRect(0, 0, w, h);
 
         // 2. Subtle crimson ambient radial glow (#E60049) behind centerpiece
-        const crimsonGlow = sctx.createRadialGradient(
+        const crimsonGlow = bctx.createRadialGradient(
           w * 0.5, h * 0.42, 0,
           w * 0.5, h * 0.42, Math.min(w, h) * 0.48
         );
         crimsonGlow.addColorStop(0.0, 'rgba(230, 0, 73, 0.22)');
         crimsonGlow.addColorStop(0.48, 'rgba(230, 0, 73, 0.065)');
         crimsonGlow.addColorStop(1.0, 'rgba(13, 5, 23, 0)');
-        sctx.fillStyle = crimsonGlow;
-        sctx.fillRect(0, 0, w, h);
+        bctx.fillStyle = crimsonGlow;
+        bctx.fillRect(0, 0, w, h);
 
         // 3. Architectural studio grid (deforms & splits with RGB aberration)
         const isMobile = window.innerWidth < 640;
@@ -800,45 +692,45 @@
         const offsetX = Math.floor((w % gridStep) * 0.5);
         const offsetY = Math.floor((h % gridStep) * 0.5);
 
-        sctx.save();
-        sctx.strokeStyle = 'rgba(226, 232, 240, 0.068)';
-        sctx.lineWidth = Math.max(1, dpr * 0.85);
-        sctx.beginPath();
+        bctx.save();
+        bctx.strokeStyle = 'rgba(226, 232, 240, 0.068)';
+        bctx.lineWidth = Math.max(1, dpr * 0.85);
+        bctx.beginPath();
 
         for (let x = offsetX; x <= w; x += gridStep) {
-          sctx.moveTo(x + 0.5, 0);
-          sctx.lineTo(x + 0.5, h);
+          bctx.moveTo(x + 0.5, 0);
+          bctx.lineTo(x + 0.5, h);
         }
         for (let y = offsetY; y <= h; y += gridStep) {
-          sctx.moveTo(0, y + 0.5);
-          sctx.lineTo(w, y + 0.5);
+          bctx.moveTo(0, y + 0.5);
+          bctx.lineTo(w, y + 0.5);
         }
-        sctx.stroke();
+        bctx.stroke();
 
         // Subtle crimson registration crosshairs at every 3rd grid intersection
-        sctx.strokeStyle = 'rgba(230, 0, 73, 0.25)';
-        sctx.lineWidth = Math.max(1, dpr);
+        bctx.strokeStyle = 'rgba(230, 0, 73, 0.25)';
+        bctx.lineWidth = Math.max(1, dpr);
         const cross = 4 * dpr;
-        sctx.beginPath();
+        bctx.beginPath();
         let colIdx = 0;
         for (let x = offsetX; x <= w; x += gridStep) {
           let rowIdx = 0;
           for (let y = offsetY; y <= h; y += gridStep) {
             if (colIdx % 3 === 1 && rowIdx % 3 === 1) {
-              sctx.moveTo(x - cross, y + 0.5);
-              sctx.lineTo(x + cross, y + 0.5);
-              sctx.moveTo(x + 0.5, y - cross);
-              sctx.lineTo(x + 0.5, y + cross);
+              bctx.moveTo(x - cross, y + 0.5);
+              bctx.lineTo(x + cross, y + 0.5);
+              bctx.moveTo(x + 0.5, y - cross);
+              bctx.lineTo(x + 0.5, y + cross);
             }
             rowIdx++;
           }
           colIdx++;
         }
-        sctx.stroke();
-        sctx.restore();
+        bctx.stroke();
+        bctx.restore();
 
-        // 4. Composite user's exact transparent PNG logo (if loaded)
-        if (activeLogoImage && activeLogoImage.naturalWidth > 0) {
+        // 4. Composite split SAUCY and static GAMES layers at identical coordinates
+        if (activeLogoImage && activeLogoImage.naturalWidth > 0 && saucySourceCanvas && gamesSourceCanvas) {
           const imgRatio = activeLogoImage.naturalWidth / activeLogoImage.naturalHeight;
           const targetW = isMobile ? w * 0.82 : Math.min(w * 0.62, 760 * dpr);
           const maxH = h * (isMobile ? 0.36 : 0.42);
@@ -855,21 +747,28 @@
           const drawX = centerX - drawW * 0.5;
           const drawY = centerY - drawH * 0.5;
 
+          // Distortable SAUCY layer (with crimson glow shadow)
           sctx.save();
           sctx.imageSmoothingEnabled = true;
           sctx.imageSmoothingQuality = 'high';
           sctx.shadowColor = 'rgba(230, 0, 73, 0.32)';
           sctx.shadowBlur = 28 * dpr;
           sctx.shadowOffsetY = 10 * dpr;
-          sctx.drawImage(activeLogoImage, drawX, drawY, drawW, drawH);
+          sctx.drawImage(saucySourceCanvas, drawX, drawY, drawW, drawH);
           sctx.restore();
 
-          // Draw exact logo silhouette onto transparent mask canvas for sauce smear detection
-          mctx.save();
-          mctx.imageSmoothingEnabled = true;
-          mctx.imageSmoothingQuality = 'high';
-          mctx.drawImage(activeLogoImage, drawX, drawY, drawW, drawH);
-          mctx.restore();
+          // Rock-solid static GAMES layer
+          gctx.save();
+          gctx.imageSmoothingEnabled = true;
+          gctx.imageSmoothingQuality = 'high';
+          gctx.drawImage(gamesSourceCanvas, drawX, drawY, drawW, drawH);
+          gctx.restore();
+
+          // Fallback 2D composite if WebGL is unavailable
+          if (!webglReady) {
+            bctx.drawImage(gamesCanvas, 0, 0);
+            bctx.drawImage(saucyCanvas, 0, 0);
+          }
         }
 
         return uploadSceneTextures();
@@ -887,9 +786,10 @@
       // Main render program
       let program = null;
       let mainPosLoc = -1;
-      let sceneTexture = null;
+      let bgTexture = null;
       let dispTexture = null;
-      let logoMaskTexture = null;
+      let saucyTexture = null;
+      let gamesTexture = null;
       let uTimeLoc = null;
       let uResLoc = null;
       let uSmearEnabledLoc = null;
@@ -914,13 +814,13 @@
         }
       `;
 
-      // Pass 1: Accumulates glossy sauce smear where the logo stretches, then gently diffuses & fades
+      // Pass 1: Accumulates glossy sauce smear ONLY where SAUCY stretches, then gently diffuses & fades
       const SMEAR_FRAGMENT_SHADER_SRC = `
         precision highp float;
 
         uniform sampler2D u_prevSmear;
         uniform sampler2D u_disp;
-        uniform sampler2D u_logoMask;
+        uniform sampler2D u_saucy;
         varying vec2 v_uv;
 
         void main() {
@@ -942,28 +842,30 @@
           // Smooth decay (~3s fade) with small subtraction so 8-bit FBO cleanly reaches 0.0
           float decayed = max(diffused * 0.984 - 0.0026, 0.0);
 
-          // Detect where the stretched logo currently reaches
+          // Detect where the solid stretched SAUCY lettering reaches (ignoring soft outer shadow)
           vec2 offset = vel * 0.085;
           vec2 uvDisplaced = clamp(v_uv - offset, 0.001, 0.999);
-          float stretchedLogoAlpha = texture2D(u_logoMask, uvDisplaced).a;
+          float stretchedSaucyAlpha = smoothstep(0.32, 0.72, texture2D(u_saucy, uvDisplaced).a);
 
-          // Deposit sauce proportional to stretch speed on stretched logo pixels
+          // Deposit sauce proportional to stretch speed on stretched SAUCY pixels
           float stretchFactor = smoothstep(0.035, 0.30, speed);
-          float deposit = stretchedLogoAlpha * stretchFactor * 0.42;
+          float deposit = stretchedSaucyAlpha * stretchFactor * 0.42;
 
           float nextSmear = clamp(decayed + deposit, 0.0, 1.0);
           gl_FragColor = vec4(nextSmear, 0.0, 0.0, 1.0);
         }
       `;
 
-      // Pass 2: Main shader (original Vivid Motion distortion + RGB aberration + glossy sauce smear)
+      // Pass 2: Main shader
+      // Layer order: Distorted BG -> Static GAMES -> Sauce Smear -> Distorted SAUCY (with RGB)
       const FRAGMENT_SHADER_SRC = `
         precision highp float;
 
-        uniform sampler2D u_scene;
+        uniform sampler2D u_bg;
         uniform sampler2D u_disp;
-        uniform sampler2D u_logoMask;
+        uniform sampler2D u_saucy;
         uniform sampler2D u_smear;
+        uniform sampler2D u_games;
         uniform int u_smearEnabled;
         uniform float u_time;
         uniform vec2 u_resolution;
@@ -990,23 +892,34 @@
           vec2 uvG = clamp(v_uv - offset * 1.00, 0.001, 0.999);
           vec2 uvB = clamp(v_uv - offset * 0.75, 0.001, 0.999);
 
-          float r = texture2D(u_scene, uvR).r;
-          float g = texture2D(u_scene, uvG).g;
-          float b = texture2D(u_scene, uvB).b;
-          vec3 color = vec3(r, g, b);
+          // 1. Distorted background & architectural grid with RGB chromatic aberration
+          vec3 color = vec3(
+            texture2D(u_bg, uvR).r,
+            texture2D(u_bg, uvG).g,
+            texture2D(u_bg, uvB).b
+          );
 
-          // Glossy SAUCY crimson smear left behind where the logo stretched & snapped back
+          // 2. Rock-solid static GAMES word (zero distortion, zero RGB shift)
+          vec4 games = texture2D(u_games, v_uv);
+          color = mix(color, games.rgb, games.a);
+
+          // Sample distorted SAUCY channels once (used for smear masking & top composite)
+          vec4 sR = texture2D(u_saucy, uvR);
+          vec4 sG = texture2D(u_saucy, uvG);
+          vec4 sB = texture2D(u_saucy, uvB);
+
+          // 3. Glossy SAUCY crimson smear ON TOP OF background & static GAMES
           if (u_smearEnabled == 1) {
             float sC = texture2D(u_smear, v_uv).r;
             if (sC > 0.004) {
               float st = 1.0 / 512.0;
-              float sR = texture2D(u_smear, clamp(v_uv + vec2(st, 0.0), 0.0, 1.0)).r;
-              float sL = texture2D(u_smear, clamp(v_uv - vec2(st, 0.0), 0.0, 1.0)).r;
-              float sU = texture2D(u_smear, clamp(v_uv + vec2(0.0, st), 0.0, 1.0)).r;
-              float sD = texture2D(u_smear, clamp(v_uv - vec2(0.0, st), 0.0, 1.0)).r;
+              float smR = texture2D(u_smear, clamp(v_uv + vec2(st, 0.0), 0.0, 1.0)).r;
+              float smL = texture2D(u_smear, clamp(v_uv - vec2(st, 0.0), 0.0, 1.0)).r;
+              float smU = texture2D(u_smear, clamp(v_uv + vec2(0.0, st), 0.0, 1.0)).r;
+              float smD = texture2D(u_smear, clamp(v_uv - vec2(0.0, st), 0.0, 1.0)).r;
 
               // 3D wet-sauce normal & glossy specular highlight
-              vec3 sNormal = normalize(vec3((sL - sR) * 5.2, (sD - sU) * 5.2, 1.0));
+              vec3 sNormal = normalize(vec3((smL - smR) * 5.2, (smD - smU) * 5.2, 1.0));
               vec3 lightDir = normalize(vec3(-0.32, 0.68, 0.66));
               float spec = pow(max(dot(sNormal, lightDir), 0.0), 22.0);
 
@@ -1018,14 +931,19 @@
               );
               sauceColor += vec3(1.0, 0.35, 0.60) * spec * 0.65;
 
-              // Keep the active logo crisp on top; reveal smear where logo returned
-              float activeLogoAlpha = texture2D(u_logoMask, uvG).a;
-              float smearMask = smoothstep(0.015, 0.42, sC) * 0.74 * (1.0 - activeLogoAlpha * 0.94);
+              // Keep active SAUCY crisp on top; reveal smear over background & GAMES
+              float activeSaucyAlpha = smoothstep(0.25, 0.75, sG.a);
+              float smearMask = smoothstep(0.015, 0.42, sC) * 0.78 * (1.0 - activeSaucyAlpha * 0.94);
 
               color = mix(color, sauceColor, smearMask);
-              color += vec3(1.0, 0.58, 0.78) * spec * smoothstep(0.04, 0.32, sC) * (1.0 - activeLogoAlpha) * 0.34;
+              color += vec3(1.0, 0.58, 0.78) * spec * smoothstep(0.04, 0.32, sC) * (1.0 - activeSaucyAlpha) * 0.34;
             }
           }
+
+          // 4. Distorted SAUCY lettering with RGB aberration ON TOP OF GAMES & smear
+          color.r = mix(color.r, sR.r, sR.a);
+          color.g = mix(color.g, sG.g, sG.a);
+          color.b = mix(color.b, sB.b, sB.a);
 
           // Centered finite-difference wake gradient (isotropic, zero directional bias)
           float texel = 1.0 / 96.0;
@@ -1096,17 +1014,21 @@
       }
 
       function uploadSceneTextures() {
-        if (!webglReady || !sceneTexture || !logoMaskTexture) return true;
+        if (!webglReady || !bgTexture || !saucyTexture || !gamesTexture) return true;
         try {
           gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
           gl.activeTexture(gl.TEXTURE0);
-          gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sceneCanvas);
+          gl.bindTexture(gl.TEXTURE_2D, bgTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bgCanvas);
 
           gl.activeTexture(gl.TEXTURE2);
-          gl.bindTexture(gl.TEXTURE_2D, logoMaskTexture);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, logoMaskCanvas);
+          gl.bindTexture(gl.TEXTURE_2D, saucyTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, saucyCanvas);
+
+          gl.activeTexture(gl.TEXTURE4);
+          gl.bindTexture(gl.TEXTURE_2D, gamesTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, gamesCanvas);
 
           gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
           return true;
@@ -1142,9 +1064,10 @@
           mainPosLoc = gl.getAttribLocation(program, 'a_pos');
           smearPosLoc = gl.getAttribLocation(smearProgram, 'a_pos');
 
-          sceneTexture = createLinearTexture(0);
+          bgTexture = createLinearTexture(0);
           dispTexture = createLinearTexture(1);
-          logoMaskTexture = createLinearTexture(2);
+          saucyTexture = createLinearTexture(2);
+          gamesTexture = createLinearTexture(4);
 
           gl.activeTexture(gl.TEXTURE1);
           gl.bindTexture(gl.TEXTURE_2D, dispTexture);
@@ -1194,15 +1117,16 @@
           // Static sampler bindings for Smear Program
           gl.useProgram(smearProgram);
           gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_disp'), 1);
-          gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_logoMask'), 2);
+          gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_saucy'), 2);
           gl.uniform1i(gl.getUniformLocation(smearProgram, 'u_prevSmear'), 3);
 
           // Static sampler bindings for Main Program
           gl.useProgram(program);
-          gl.uniform1i(gl.getUniformLocation(program, 'u_scene'), 0);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_bg'), 0);
           gl.uniform1i(gl.getUniformLocation(program, 'u_disp'), 1);
-          gl.uniform1i(gl.getUniformLocation(program, 'u_logoMask'), 2);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_saucy'), 2);
           gl.uniform1i(gl.getUniformLocation(program, 'u_smear'), 3);
+          gl.uniform1i(gl.getUniformLocation(program, 'u_games'), 4);
           uTimeLoc = gl.getUniformLocation(program, 'u_time');
           uResLoc = gl.getUniformLocation(program, 'u_resolution');
           uSmearEnabledLoc = gl.getUniformLocation(program, 'u_smearEnabled');
@@ -1211,12 +1135,12 @@
         } catch (err) {
           webglReady = false;
           glCanvas.style.display = 'none';
-          sceneCanvas.style.position = 'fixed';
-          sceneCanvas.style.inset = '0';
-          sceneCanvas.style.width = '100%';
-          sceneCanvas.style.height = '100%';
-          sceneCanvas.style.zIndex = '1';
-          document.body.prepend(sceneCanvas);
+          bgCanvas.style.position = 'fixed';
+          bgCanvas.style.inset = '0';
+          bgCanvas.style.width = '100%';
+          bgCanvas.style.height = '100%';
+          bgCanvas.style.zIndex = '1';
+          document.body.prepend(bgCanvas);
         }
       }
 
@@ -1244,10 +1168,13 @@
         const hostedImg = new Image();
         hostedImg.onload = function () {
           activeLogoImage = hostedImg;
+          splitLogoIntoLayers(hostedImg);
           renderOffscreenScene();
         };
         hostedImg.onerror = function () {
           activeLogoImage = null;
+          saucySourceCanvas = null;
+          gamesSourceCanvas = null;
           renderOffscreenScene();
         };
         hostedImg.src = LOGO_FILE_PATH;
@@ -1475,7 +1402,7 @@
 
           gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
 
-          // PASS 1: Update Ping-Pong Sauce Smear FBO
+          // PASS 1: Update Ping-Pong Sauce Smear FBO (driven ONLY by SAUCY layer)
           if (smearReady) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, smearFBOs[smearWriteIdx]);
             gl.viewport(0, 0, SMEAR_SIZE, SMEAR_SIZE);
@@ -1487,7 +1414,7 @@
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, dispTexture);
             gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_2D, logoMaskTexture);
+            gl.bindTexture(gl.TEXTURE_2D, saucyTexture);
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, smearTextures[smearReadIdx]);
 
@@ -1498,7 +1425,7 @@
             smearWriteIdx = tmpIdx;
           }
 
-          // PASS 2: Render Main Scene + Distortion + Sauce Smear to Screen
+          // PASS 2: Render BG -> Static GAMES -> Sauce Smear -> Distorted SAUCY
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
           gl.viewport(0, 0, glCanvas.width, glCanvas.height);
           gl.useProgram(program);
@@ -1507,15 +1434,17 @@
           gl.vertexAttribPointer(mainPosLoc, 2, gl.FLOAT, false, 0, 0);
 
           gl.activeTexture(gl.TEXTURE0);
-          gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+          gl.bindTexture(gl.TEXTURE_2D, bgTexture);
           gl.activeTexture(gl.TEXTURE1);
           gl.bindTexture(gl.TEXTURE_2D, dispTexture);
           gl.activeTexture(gl.TEXTURE2);
-          gl.bindTexture(gl.TEXTURE_2D, logoMaskTexture);
+          gl.bindTexture(gl.TEXTURE_2D, saucyTexture);
           if (smearReady) {
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, smearTextures[smearReadIdx]);
           }
+          gl.activeTexture(gl.TEXTURE4);
+          gl.bindTexture(gl.TEXTURE_2D, gamesTexture);
 
           gl.uniform1i(uSmearEnabledLoc, smearReady ? 1 : 0);
           gl.uniform1f(uTimeLoc, now * 0.001);
