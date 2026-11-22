@@ -367,33 +367,6 @@
     /* ==========================================================================
        BOTTOM BAR & DEV HELPER CONTROLS (ONLY AFTER MANUAL PNG UPLOAD)
        ========================================================================== */
-    .bottom-bar {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      animation: revealUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.38s both;
-    }
-
-    .hint-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: var(--font-mono);
-      font-size: clamp(0.6rem, 0.95vw, 0.7rem);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(226, 232, 240, 0.42);
-    }
-
-    .hint-line {
-      width: 16px;
-      height: 1px;
-      background: rgba(230, 0, 73, 0.65);
-    }
-
     .dev-controls {
       pointer-events: auto;
       display: none;
@@ -581,13 +554,6 @@
       </div>
     </main>
 
-    <!-- BOTTOM BAR -->
-    <footer class="bottom-bar">
-      <div class="hint-label">
-        <span class="hint-line"></span>
-        <span id="interaction-hint">MOVE CURSOR TO DISTORT</span>
-      </div>
-    </footer>
   </div>
 
   <!-- ========================================================================
@@ -606,10 +572,6 @@
          1. DEVICE DETECTION & HELPERS
          ---------------------------------------------------------------------- */
       const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-      const hintEl = document.getElementById('interaction-hint');
-      if (isTouch && hintEl) {
-        hintEl.textContent = 'TOUCH & DRAG TO DISTORT';
-      }
 
       const lerp = (a, b, t) => a + (b - a) * t;
       const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
